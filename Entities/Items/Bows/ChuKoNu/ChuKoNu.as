@@ -1,3 +1,4 @@
+#include "EquipCommon.as";
 //Armor Init
 void onInit(CBlob@ this)
 {
@@ -5,9 +6,12 @@ void onInit(CBlob@ this)
 	//Tag it the same name as the chars that you want to be able to wear it.
 	this.Tag("archer");
 
+	//Visual weapon type
+	this.set_u8("weapontype", WeaponTypes::CrossBow );
+	
 	//Damage
 	this.set_f32("dmgmult", 1.0f);
-	this.set_f32("rangemult", 0.0f);
+	this.set_f32("rangemult", 0.2f);
 	this.set_f32("speedmult", 0.4f);
 	//What kind of item is it?
 	this.Tag("weapon"); //Options: "weapon" "armor" "misc"

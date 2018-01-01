@@ -1,9 +1,11 @@
-
+#include "RunnerTextures.as";
+#include "EquipCommon.as";
 void onInit( CBlob@ this )
 {
 	this.addCommandID("equip");
 	this.set_u8("cooldown", 40);
 	this.Sync("cooldown", true);
+	this.Tag("item");
 }
 
 void GetButtonsFor( CBlob@ this, CBlob@ caller )
@@ -13,25 +15,27 @@ void GetButtonsFor( CBlob@ this, CBlob@ caller )
 	//if(caller)
 	if(this.get_u8("cooldown") == 1)
 	{
-		CButton@ button = caller.CreateGenericButton(15, Vec2f_zero, this, this.getCommandID("equip"), "Equip this Item!", params);
-		if (this.hasTag(caller.getName()))
+		if(this.isAttachedTo(caller))
 		{
-			if(this.isAttachedTo(caller))
+			CButton@ button = caller.CreateGenericButton(15, Vec2f_zero, this, this.getCommandID("equip"), "Equip this Item!", params);
+			if(button !is null)
 			{
-				button.SetEnabled(true);
-			}
-			else
-			{
-				button.SetEnabled(false);
+				if(this.hasTag(caller.getName()))
+				{
+					button.SetEnabled(true);
+				}
+				else
+				{
+					button.SetEnabled(false);
+				}
 			}
 		}
 		else
 		{
-			button.SetEnabled(false);
+			//No button.
 		}
 	}
 }
-
 void onCommand( CBlob@ this, u8 cmd, CBitStream @params )
 {
 	if (cmd == this.getCommandID("equip"))
@@ -39,20 +43,49 @@ void onCommand( CBlob@ this, u8 cmd, CBitStream @params )
 		CBlob@ caller = getBlobByNetworkID(params.read_u16());
 		if (caller !is null)
 		{
+			CSprite@ callersprite = caller.getSprite();
 			if(this.hasTag(caller.getName()) && this.isAttachedTo(caller))
 			{
 				if (this.hasTag("weapon"))
 				{
+					u8 weapontype = 0;
+					if(this.exists("weapontype"))
+					{
+						weapontype = this.get_u8("weapontype");
+					}
+					if(caller.getName() == "archer")
+					{
+						CSpriteLayer@ weapon = callersprite.getSpriteLayer("frontarm");
+						if(weapon !is null)
+						{
+							equipLayerTexture(caller, weapon, this.getSprite(), weapontype);
+						}
+					}
+					else
+					{
+						CSpriteLayer@ weapon = callersprite.getSpriteLayer("weapon");
+						if(weapon !is null)
+						{
+							equipLayerTexture(caller, weapon, this.getSprite(), weapontype);
+						}
+					}
 					if(caller.exists("weapon"))
 					{
 						CBlob@ weapon = server_CreateBlob(caller.get_string("weapon"), -1, caller.getPosition());
 					}
+					
+					
 					float dmgmult = 1.0f;
 					float speedmult = 1.0f; //The three variables you can fiddle with, they're set to 1.0f so that if you forget to set it on a weapon, it will not keep the old variable.
 					float rangemult = 1.0f;
+					uint16 cancelnum = 2310; // 2 * 3 * 5 * 7 * 11. Means it's gotta be a u16 D:
 					
 					caller.set_string("weapon", this.getName());
 					
+					if(this.exists("cancelnum"))
+					{
+						cancelnum = this.get_u16("cancelnum");
+					}
 					if(this.exists("dmgmult"))
 					{
 						dmgmult = this.get_f32("dmgmult");
@@ -69,10 +102,12 @@ void onCommand( CBlob@ this, u8 cmd, CBitStream @params )
 					caller.set_f32("dmgmult", dmgmult);
 					caller.set_f32("speedmult", speedmult);
 					caller.set_f32("rangemult", rangemult);
+					caller.set_u16("cancelnum", cancelnum);
 					this.server_Die();
 				}
 				else if (this.hasTag("armor"))
 				{
+					equipTexture(caller.getSprite(), this.getSprite());
 					if(caller.exists("armor"))
 					{
 						CBlob@ armor = server_CreateBlob(caller.get_string("armor"), -1, caller.getPosition());
@@ -109,7 +144,7 @@ void onCommand( CBlob@ this, u8 cmd, CBitStream @params )
 	}
 }
 
-void onTick(CBlob@ this)
+void onTick(CBlob@ this) //I jus' realised what this is for \o/
 {
 	if(this.get_u8("cooldown") > 1)
 	{

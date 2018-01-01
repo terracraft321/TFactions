@@ -16,11 +16,11 @@ void onCollision( CBlob@ this, CBlob@ blob, bool solid ) //Called whenever it co
 	if(p is null) return;
 	CBlob@ b = p.getBlob();
 	if(b is null) return;
-	if(b.getNetworkID() == blob.getNetworkID()) return;
 	if(getNet().isServer())
 	{
 		if(blob !is null) //This is checking to see if the blob is "null" - most of the time anything you collide with will be a blob. But if you collide with a block, this returns false.
 		{
+			if(b.getNetworkID() == blob.getNetworkID()) return;
 			if(blob.hasTag("flesh") && blob.getTeamNum() == this.getTeamNum())
 			{
 				blob.setVelocity((this.getVelocity() / 2.0f) + blob.getVelocity()); //Knockback should stay on?

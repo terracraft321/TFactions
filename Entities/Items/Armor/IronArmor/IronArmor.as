@@ -13,4 +13,6 @@ void onInit(CBlob@ this)
 	this.Tag("armor"); //Options: "weapon" "armor" "misc"
 	//I have merged bows & swords, because it's nicer that way, you're never going to get them at the same time, and they'll both be doing the same thing. This way staves & picks are also gonna be much easier to add.
 	//Misc = accessories, they have no defence / damage change, but ya can use 'em for custom stuff.
+	
+	
 }

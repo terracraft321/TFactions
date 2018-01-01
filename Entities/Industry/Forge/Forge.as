@@ -9,6 +9,15 @@
 
 void onInit(CBlob@ this)
 {
+	CSprite@ sprite = this.getSprite();
+	CSpriteLayer@ front = sprite.addSpriteLayer("label", "ForgeHeads.png", 16, 16, this.getTeamNum(), this.getSkinNum());
+	if (front !is null)
+	{
+		front.SetOffset(Vec2f(0, 2));
+		Animation@ anim = front.addAnimation("default", 0, false);
+		front.SetVisible(false);
+		front.SetRelativeZ(1005);
+	}
 	this.Tag("builder always hit");
 	this.addCommandID("initshop");
 	this.set_TileType("background tile", CMap::tile_wood_back);
@@ -23,7 +32,7 @@ void onInit(CBlob@ this)
 	AddIconToken( "$platinumblade_$", "PlatinumBlade.png", Vec2f(16,16), 0);
 	AddIconToken( "$titanblade_$", "TitanBlade.png", Vec2f(32,32), 0);
 	AddIconToken( "$ironpartisan_$", "IronPartisan.png", Vec2f(16,16), 0);
-	
+	AddIconToken( "$mithrildagger_$", "MithrilDagger.png", Vec2f(16,16), 0);
 	
 	// Bow Icons
 	AddIconToken( "$woodenbow_$", "WoodenBow.png", Vec2f(16,16), 0);
@@ -33,14 +42,16 @@ void onInit(CBlob@ this)
 	AddIconToken( "$platinumbow_$", "PlatinumBow.png", Vec2f(16,16), 0);
 	AddIconToken( "$titanbow_$", "TitanBow.png", Vec2f(32,32), 0);
 	AddIconToken( "$woodlongbow_$", "WoodLongBow.png", Vec2f(16,16), 0);
-	
+	AddIconToken( "$chukonu_$", "ChuKoNu.png", Vec2f(16,16), 0);
 	
 	// Pick Icons
+	AddIconToken( "$titanpick_$", "TitanPick.png", Vec2f(16,16), 0);
 	AddIconToken( "$woodenpick_$", "WoodenPick.png", Vec2f(16,16), 0);
 	AddIconToken( "$stonepick_$", "StonePick.png", Vec2f(16,16), 0);
 	AddIconToken( "$ironpick_$", "IronPick.png", Vec2f(16,16), 0);
 	AddIconToken( "$mithrilharvester_$", "MithrilHarvester.png", Vec2f(16,16), 0);
 	AddIconToken( "$platinumpick_$", "PlatinumPick.png", Vec2f(16,16), 0);
+	AddIconToken( "$blurpick_$", "BlurPick.png", Vec2f(16,16), 0);
 	
 	
 	// Misc Icons
@@ -48,6 +59,7 @@ void onInit(CBlob@ this)
 	AddIconToken( "$topazring_$", "TopazRing.png", Vec2f(16,16), 0);
 	AddIconToken( "$spikedring_$", "SpikedRing.png", Vec2f(16,16), 0);
 	AddIconToken( "$hellfirering_$", "HellfireRing.png", Vec2f(16,16), 0);
+	AddIconToken( "$scubahelm_$", "ScubaHelm.png", Vec2f(16,16), 0);
 	
 	
 	// Armor Icons
@@ -178,7 +190,17 @@ void initShop(int itemindex, CBlob@ this)
 void initForge(CBlob@ this)
 {
 	int itemindex = this.get_u8("itemindex");
-	switch(itemindex) //Based off of which item index you chose, actually create the shop - I will probably create like 6 different shop buttons at the start, which remove themsevles.
+	CSpriteLayer@ label = this.getSprite().getSpriteLayer("label");
+	if(label !is null)
+	{
+		label.SetVisible(true);
+		Animation@ anim = label.getAnimation("default");
+		if(anim !is null)
+		{
+			anim.AddFrame(itemindex);
+		}
+	}
+	switch(itemindex) //Based off of which item index you chose, actually create the shop.
 	{
 		case SWORDINDEX: //Swords.
 		{
@@ -241,6 +263,12 @@ void initForge(CBlob@ this)
 				AddRequirement(s.requirements, "blob", "mat_gold", "Gold", 15);
 				AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 200);
 			}
+			{
+				ShopItem@ s = addShopItem(this, "Mithril Dagger", "$mithrildagger_$", "mithrildagger", "A dagger, makes you slash faster, but you gotta get personal!", false);
+				AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 10);
+				AddRequirement(s.requirements, "blob", "mat_gold", "Gold", 30);
+				AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 150);
+			}
 		}
 		break;
 		case BOWINDEX: //Bows
@@ -269,20 +297,25 @@ void initForge(CBlob@ this)
 			}
 			{
 				ShopItem@ s = addShopItem(this, "Titan Bow", "$titanbow_$", "titanbow", "A bow made of titan. x3 dmg", false);
-				AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 350);
-				AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 750);
+				AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 1000);
+				AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 600);
 			}
 			{
 				ShopItem@ s = addShopItem(this, "Wooden Longbow", "$woodlongbow_$", "woodlongbow", "It's arrows fly at impressive speeds.", false);
 				AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 600);
 				AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 100);
 			}
+			{
+				ShopItem@ s = addShopItem(this, "ChuKoNu", "$chukonu_$", "chukonu", "Shoots fast, but it's arrows aren't very powerful.", false);
+				AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 200);
+				AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 250);
+			}
 		}
 		break;
 		case PICKINDEX: //Picks - maybe split this one up, since they're 4* larger than other things.
 		{
 			{
-				ShopItem@ s = addShopItem(this, "Wooden 'pickaxe'", "$woodenpick_$", "woodenpick", "It's a log on a stick, it digs slightly faster, and has a little better range", false);
+				ShopItem@ s = addShopItem(this, "Wooden 'pickaxe'", "$woodenpick_$", "woodenpick", "It's a log on a stick, it digs slightly faster, and has a little better range. /nDon't ask why.", false);
 				AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 150);
 			}
 			{
@@ -305,8 +338,20 @@ void initForge(CBlob@ this)
 			{
 				ShopItem@ s = addShopItem(this, "Platinum Pickaxe", "$platinumpick_$", "platinumpick", "Furthest reach, and fastest mining.", false);
 				AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 200);
-				AddRequirement(s.requirements, "blob", "mat_gold", "Gold", 15);
+				AddRequirement(s.requirements, "blob", "mat_gold", "Gold", 35);
 				AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 400);
+			}
+			{
+				ShopItem@ s = addShopItem(this, "Titan Pick", "$titanpick_$", "titanpick", "Effectively a prototype earthquake mallet.", false);
+				AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 300);
+				AddRequirement(s.requirements, "blob", "mat_gold", "Gold", 75);
+				AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 700);
+			}
+			{
+				ShopItem@ s = addShopItem(this, "Blur Shovel", "$blurpick_$", "blurpick", "Very fast, but annoyingly small range.", false);
+				AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 100);
+				AddRequirement(s.requirements, "blob", "mat_gold", "Gold", 45);
+				AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 100);
 			}
 		}
 		break;
@@ -376,6 +421,11 @@ void initForge(CBlob@ this)
 				ShopItem@ s = addShopItem(this, "Hellfire Ring", "$hellfirering_$", "hellfirering", "For anyone, grants fire resistance.", false);
 				AddRequirement(s.requirements, "coin", "", "Coins", 100);
 				AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 50);
+			}
+			{
+				ShopItem@ s = addShopItem(this, "Scuba Gear", "$scubahelm_$", "scubahelm", "For anyone, makes it easier to breathe underwater.", false);
+				AddRequirement(s.requirements, "coin", "", "Coins", 25);
+				AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 100);
 			}
 		}
 		break;
