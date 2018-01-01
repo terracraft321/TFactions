@@ -22,7 +22,7 @@ void onInit(CBlob@ this)
 
 	// SHOP
 	this.set_Vec2f("shop offset", Vec2f(0, 0));
-	this.set_Vec2f("shop menu size", Vec2f(6, 5));
+	this.set_Vec2f("shop menu size", Vec2f(6, 7));
 	this.set_string("shop description", "Construct");
 	this.set_u8("shop icon", 12);
 	this.Tag(SHOP_AUTOCLOSE);
@@ -91,7 +91,18 @@ void onInit(CBlob@ this)
 		ShopItem@ s = addShopItem(this, "Bison Farm", "$bisonfac$", "bisonfac", "Produces BISONS!");
 		AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 300);
 	}	
+	{
+		ShopItem@ s = addShopItem(this, "Apothecary", "$apothecary$", "apothecary", "The botanist's layer.");
+		AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 100);
+		AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 100);
+	}
+	{
+		ShopItem@ s = addShopItem(this, "Well", "$well$", "well", "Refills water buckets");
+		AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 250);
+		AddRequirement(s.requirements, "blob", "mat_stone", "Stone", 400);
+	}
 }
+
 
 void GetButtonsFor(CBlob@ this, CBlob@ caller)
 {
