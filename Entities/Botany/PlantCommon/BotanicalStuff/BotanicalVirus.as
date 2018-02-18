@@ -32,7 +32,7 @@ void onTick(CBlob@ this)
 	}
 	else if(getNet().isServer())
 	{
-		if(XORRandom(5.5f * (this.get_u8("water_level") + (35 * this.get_f32("strength")))) == 2) //Using 2 means that if water_level doesn't exist then it'll always be false, cause gets 0 then C:
+		if(XORRandom(5.5f * (float(this.get_u8("water_level")) + (35.0f * this.get_f32("strength")))) == 2) //Using 2 means that if water_level doesn't exist then it'll always be false, cause gets 0 then C:
 		{
 			this.Tag("virus");
 			this.Sync("virus", true);

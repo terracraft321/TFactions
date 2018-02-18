@@ -99,9 +99,16 @@ void LoadDefaultGUI()
 		// vehicles
 		AddIconToken("$LoadAmmo$", interaction, Vec2f(16, 16), 7, 7);
 
-		//random bs
+		//Shops
 		AddIconToken("$bisonfac$", "BisonFac.png", Vec2f(40, 24), 0);
+		AddIconToken("$well$", "Well.png", Vec2f(40, 24), 0);
+		AddIconToken("$apothecary$", "Apothecary.png", Vec2f(40, 24), 0);
 		AddIconToken("$stonemine$", "StoneMine.png", Vec2f(40, 24), 0);
 		AddIconToken("$forge$", "Forge.png", Vec2f(40, 24), 0);
+		AddIconToken("$itemmelter$", "ItemMelter.png", Vec2f(40, 24), 0);
+		
+		//Botany
+		AddIconToken("$mutagen$", "Mutagen.png", Vec2f(8, 8), 0);
+		AddIconToken("$antidote$", "Antidote.png", Vec2f(8,8), 0);
 	}
 }

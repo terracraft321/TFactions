@@ -13,7 +13,7 @@ void onInit(CSprite@ this)
 		CSpriteLayer@ dirt = this.addSpriteLayer("dirt", "DirtLayer.png", 16, 16);
 		if(dirt !is null)
 		{
-			dirt.SetOffset(Vec2f(0, -3) - this.getOffset() / 2);
+			dirt.SetOffset(Vec2f(0, -5) - this.getOffset() / 2);
 			dirt.SetRelativeZ(this.getRelativeZ()+0.5f);
 			Animation@ wet = dirt.addAnimation("wet", 0, false);
 			if(wet !is null)

@@ -1,7 +1,32 @@
 // BasePNGLoader.as
-
 #include "BasePNGColors.as";
 #include "CustomBlocks.as";
+
+const string[] lpick = {
+"earthquakemallet"
+};
+const string[] lbow = {
+"narayanastra"
+};
+const string[] lblade = {
+"greatblade",
+"dynamiteblade"
+};
+const string[] lwand = {
+"mat_stone"
+};
+const string[] larmor = {
+"direplate"
+};
+const string[] ldrill = {
+"mat_stone"
+};
+const string[] lmisc = {
+"hellfirering",
+"emeraldring",
+"topazring",
+"scubahelm"
+};
 
 enum WAROffset
 {
@@ -888,6 +913,41 @@ class PNGLoader
 		else if (pixel == color_wood)
 		{
 			spawnBlob( map, "mat_wood", offset, -1);
+			offsets[autotile_offset].push_back( offset );
+		}
+		else if (pixel == color_lpick)
+		{
+			spawnBlob( map, lpick[XORRandom(lpick.length())], offset, -1);
+			offsets[autotile_offset].push_back( offset );
+		}
+		else if (pixel == color_lbow)
+		{
+			spawnBlob( map, lbow[XORRandom(lbow.length())], offset, -1);
+			offsets[autotile_offset].push_back( offset );
+		}
+		else if (pixel == color_lblade)
+		{
+			spawnBlob( map, lblade[XORRandom(lblade.length())], offset, -1);
+			offsets[autotile_offset].push_back( offset );
+		}
+		else if (pixel == color_larmor)
+		{
+			spawnBlob( map, larmor[XORRandom(larmor.length())], offset, -1);
+			offsets[autotile_offset].push_back( offset );
+		}
+		else if (pixel == color_lmisc)
+		{
+			spawnBlob( map, lmisc[XORRandom(lmisc.length())], offset, -1);
+			offsets[autotile_offset].push_back( offset );
+		}
+		else if (pixel == color_lwand)
+		{
+			spawnBlob( map, lwand[XORRandom(lwand.length())], offset, -1);
+			offsets[autotile_offset].push_back( offset );
+		}
+		else if (pixel == color_ldrill)
+		{
+			spawnBlob( map, ldrill[XORRandom(ldrill.length())], offset, -1);
 			offsets[autotile_offset].push_back( offset );
 		}
 		else if (pixel == color_mook_knight)

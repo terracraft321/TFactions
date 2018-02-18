@@ -221,6 +221,14 @@ const SColor color_gold(                    0xFFFFF0A0); // ARGB(255, 255, 240, 
 const SColor color_stone(                   0xFFBEBEAF); // ARGB(255, 190, 190, 175);
 const SColor color_wood(                    0xFFC8BE8C); // ARGB(255, 200, 190, 140);
 
+// LEGENDARY WEAPONS
+const SColor color_lpick(                    0xFFCC00D8); // ARGB(255, 204, 0, 216);
+const SColor color_lbow(                     0xFFCC318F); // ARGB(255, 204, 49, 143);
+const SColor color_lblade(                   0xFFCC6B62); // ARGB(255, 204, 107, 98);
+const SColor color_larmor(                   0xFFCC8C3D); // ARGB(255, 204, 140, 61);
+const SColor color_lmisc(                    0xFFCCAA1C); // ARGB(255, 204, 170, 28);
+const SColor color_lwand(                    0xFFCCD20D); // ARGB(255, 204, 210, 13);
+const SColor color_ldrill(                   0xFFCCD300); // ARGB(255, 204, 211, 0);
 // CHARACTERS
 const SColor color_princess(                0xFFFB87FF); // ARGB(255, 251, 135, 255);
 const SColor color_necromancer(             0xFF9E3ABB); // ARGB(255, 158,  58, 187);

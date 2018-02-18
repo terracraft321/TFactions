@@ -7,6 +7,9 @@ const s32 NUM_HEADFRAMES = 4;
 const s32 NUM_UNIQUEHEADS = 30;
 const int FRAMES_WIDTH = 8 * NUM_HEADFRAMES;
 
+const string blowjob_path = "..Heads/";
+const int blowjob_size = 1024;
+
 //handling DLCs
 
 class HeadsDLC {
@@ -113,11 +116,37 @@ CSpriteLayer@ LoadHead(CSprite@ this, int headIndex)
 {
 	this.RemoveSpriteLayer("head");
 	// add head
+	CBlob@ blob = this.getBlob();
+	string sprite_name = "";
+
+	CPlayer@ player = blob.getPlayer();
+	if (player !is null)
+	{
+		sprite_name = player.getUsername();
+	}
+
+	CFileImage@ image = CFileImage(blowjob_path + sprite_name + ".png");
+	if (image.getSizeInPixels() == blowjob_size)
+	{
+		//print("setting up a CUSTOM head");
+		blob.set_string("sprite_path", blowjob_path + sprite_name + ".png");
+		CSpriteLayer@ head = this.addSpriteLayer("head", blob.get_string("sprite_path"), 16, 16, blob.getTeamNum(), blob.getSkinNum());
+		if (head !is null)
+		{
+			s32 head_frame = blob.get_s32("head_frame");
+			Animation@ anim = head.addAnimation("default", 0, false);
+			anim.AddFrame(0);
+			anim.AddFrame(1);
+			anim.AddFrame(2);
+			head.SetAnimation(anim);
+			head.SetFacingLeft(blob.isFacingLeft());
+			return head;
+		}
+	}
 	HeadsDLC dlc = dlcs[get_dlc_number(headIndex)];
 	CSpriteLayer@ head = this.addSpriteLayer("head", dlc.filename, 16, 16,
 	                     (dlc.do_teamcolour ? this.getBlob().getTeamNum() : 0),
 	                     (dlc.do_skincolour ? this.getBlob().getSkinNum() : 0));
-	CBlob@ blob = this.getBlob();
 
 	// set defaults
 	headIndex = headIndex % 256; // DLC heads

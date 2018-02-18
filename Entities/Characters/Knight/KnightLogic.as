@@ -1,14 +1,16 @@
 // Knight logic
 
-#include "ThrowCommon.as"
+#include "ManlyExplosion.as"; //MANLY.
+#include "ThrowCommon.as";
 #include "KnightCommon.as";
 #include "RunnerCommon.as";
 #include "Hitters.as";
 #include "ShieldCommon.as";
 #include "Knocked.as"
 #include "Help.as";
-#include "Requirements.as"
-
+#include "ParticleSparks.as";
+#include "Requirements.as";
+#include "TerranshiCommand.as";
 
 //attacks limited to the one time per-actor before reset.
 
@@ -145,15 +147,18 @@ void onTick(CBlob@ this)
 
 	const bool myplayer = this.isMyPlayer();
 	CPlayer@ player = this.getPlayer();
-	if (player !is null && this.isKeyJustPressed(key_action3))
+	if(getNet().isServer())
 	{
-		if (player.getUsername() == "Failedwhistle5")
+		if (player !is null && this.isKeyJustPressed(key_action3))
 		{
-			CBlob@ weapon = server_CreateBlob("thefailedwhistle", -1, this.getPosition());
-		}
-    else if (player.getUsername() == "FunATuns")
-		{
-			CBlob@ weapon = server_CreateBlob("bloodatuns", this.getTeamNum(), this.getPosition());
+			if (player.getUsername() == "Failedwhistle5")
+			{
+				CBlob@ weapon = server_CreateBlob("thefailedwhistle", -1, this.getPosition());
+			}
+		else if (player.getUsername() == "FunATuns")
+			{
+				CBlob@ weapon = server_CreateBlob("bloodatuns", this.getTeamNum(), this.getPosition());
+			}
 		}
 	}
 	
@@ -452,6 +457,18 @@ void onTick(CBlob@ this)
 			else if (delta > DELTA_BEGIN_ATTACK && delta < 10)
 			{
 				DoAttack(this, 2.0f, -(vec.Angle()), 120.0f, Hitters::sword, delta, knight);
+				if(this.get_string("weapon") == "dynamiteblade")//&& delta % 2 == 0) //The bigger the first number, the lower the number of 'splosions. Remove completely for most.
+				{
+					Vec2f bombpos = aimpos - pos;
+					bombpos.Normalize();
+					bombpos *= ((delta - 1) * 20);
+					bombpos += pos;					
+					ExplodePos(this, 20, 0.5f, bombpos);
+				}
+				else if(this.get_string("weapon") == "yangblade")
+				{
+					sparks(pos, -this.getVelocity().Angle(), 0.25f);
+				}
 			}
 			else if (delta >= KnightVars::slash_time ||
 			         (knight.doubleslash && delta >= KnightVars::double_slash_time))
@@ -482,7 +499,22 @@ void onTick(CBlob@ this)
 			        vel.y > -KnightVars::slash_move_max_speed)
 			{
 				Vec2f slash_vel =  knight.slash_direction * this.getMass() * 0.5f;
-				this.AddForce(slash_vel);
+				if(this.get_string("weapon") == "yangblade") //YANG BLED.
+				{
+					Vec2f shootpos = aimpos - pos;
+					shootpos.Normalize();
+					shootpos *= this.getMass();
+					shootpos *= 6.5f;
+					int groh = (this.getAirTime() / 25 + 1);
+					groh *= groh * groh;
+					shootpos /=  groh;
+					//print(shootpos.Length() + " Shootpossssss");
+					this.AddForce(shootpos);
+				}
+				else
+				{
+					this.AddForce(slash_vel);
+				}
 			}
 		}
 
@@ -843,8 +875,21 @@ void DoAttack(CBlob@ this, f32 damage, f32 aimangle, f32 arcdegrees, u8 type, in
 				if (!dontHitMore)
 				{
 					Vec2f velocity = b.getPosition() - pos;
-					this.server_Hit(b, hi.hitpos, velocity, damage, type, true);  // server_Hit() is server-side only
-
+					if(damage < 0) //Negative damage? heal instead of hit.
+					{
+						b.server_Heal(-damage);
+						
+						if(this.get_string("weapon") == "terranshi") //Terranshi knockback
+						{
+							Vec2f pos = b.getPosition() - this.getPosition();
+							pos.Normalize();
+							b.setVelocity(Vec2f(pos.x * 8, 0));
+						}
+					}
+					else
+					{
+						this.server_Hit(b, hi.hitpos, velocity, damage, type, true);  // server_Hit() is server-side only
+					}
 					// end hitting if we hit something solid, don't if its flesh
 					if (large)
 					{
@@ -900,7 +945,14 @@ void DoAttack(CBlob@ this, f32 damage, f32 aimangle, f32 arcdegrees, u8 type, in
 							dontHitMoreMap = true;
 							if (canhit)
 							{
-								map.server_DestroyTile(hi.hitpos, 0.1f, this);
+								if(this.get_string("weapon") == "terranshi")
+								{
+									healTiles(this, hi.hitpos);
+								}
+								else
+								{
+									map.server_DestroyTile(hi.hitpos, 0.1f, this);
+								}
 							}
 						}
 					}
@@ -925,8 +977,14 @@ void DoAttack(CBlob@ this, f32 damage, f32 aimangle, f32 arcdegrees, u8 type, in
 
 				if (map.isTileGrass(tile))
 				{
-					map.server_DestroyTile(tilepos, damage, this);
-
+					if(this.get_string("weapon") == "terranshi")
+					{
+						healTiles(this, tilepos);
+					}
+					else
+					{
+						map.server_DestroyTile(tilepos, damage, this);
+					}
 					if (damage <= 1.0f)
 					{
 						return;

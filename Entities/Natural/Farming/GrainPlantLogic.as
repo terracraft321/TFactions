@@ -8,7 +8,7 @@ void onInit(CBlob@ this)
 
 	this.getCurrentScript().tickFrequency = 120;
 	this.getSprite().SetZ(10.0f);
-
+	this.Tag("builder always hit");
 	// this script gets removed so onTick won't be run on client on server join, just onInit
 	if (this.hasTag("instant_grow"))
 	{
