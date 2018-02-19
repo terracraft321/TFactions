@@ -5,7 +5,6 @@
 #include "Descriptions.as";
 #include "WARCosts.as";
 #include "CheckSpam.as";
-#include "CTFShopCommon.as";
 
 
 
