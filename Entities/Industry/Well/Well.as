@@ -5,6 +5,7 @@
 #include "Descriptions.as";
 #include "WARCosts.as";
 #include "CheckSpam.as";
+#include "CTFShopCommon.as";
 #include "ProductionCommon.as";
 
 const int splashes = 3;

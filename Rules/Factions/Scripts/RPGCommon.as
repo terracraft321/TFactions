@@ -1,10 +1,10 @@
-//RPGCommon.as
-
 #include "Factions.as";
 #include "RulesCore.as";
 #include "RespawnSystem.as";
 #include "CTF_Structs.as";
 #include "Rules/CommonScripts/BaseTeamInfo.as";
+
+
 
 shared class RPGRespawns : RespawnSystem
 {
@@ -101,25 +101,34 @@ shared class RPGRespawns : RespawnSystem
             //print("hello from canSpawnPlayer a");
             return false; 
         }
-
+		Factions@ f;
+		rules.get("factions", @f);
         CPlayer@ p = getPlayerByUsername(p_info.username);
-
+		bool isRaider = false;
+		if(isRaider && getGameTime() % 1750 <= 30)
+		{
+			return false;
+		}
         if(p is null)
         {
             //print("hello from canSpawnPlayer b");
             return false;
         }
-
         if(!isSpawning(p))
         {
             //print("hello from canSpawnPlayer c");
             return false;
         }
-
+		
+		Faction@ target = f.getFactionByMemberName(p.getUsername());
+		if(target !is null)
+		{
+			isRaider = (target.name == "Raiders");
+		}
         int x;
         p.get("lsr", x);
 
-        bool sp = p_info.lastSpawnRequest > x + getTicksASecond()*(p.getTeamNum() == 7 ? 1 : 15);
+        bool sp = p_info.lastSpawnRequest > x + getTicksASecond()*(p.getTeamNum() == 7 ? 1 : (isRaider ? 30 : 15));
 
         if(sp)
         {
@@ -153,25 +162,135 @@ shared class RPGRespawns : RespawnSystem
             
             string Class = "migrant";
             Vec2f spawnloc = getSpawnLocation(player);
-
+			bool isRaider = false;
             Faction@ target = f.getFactionByMemberName(player.getUsername());
             if(target !is null)
-            {   
-                team = target.getTeamNum();
-                Class = "builder";
-                spawnloc = getBaseLocation(team);
-            }
-	    
-	    CBlob@ newBlob = server_CreateBlob(Class,team,spawnloc);
-	    newBlob.server_SetPlayer(player);
-	    
-	    if(blob !is null)
             {
-            	blob.server_SetPlayer(null);
-            	blob.server_Die();
+                team = target.getTeamNum();
+				if(target.name == "Raiders")
+				{
+					isRaider = true;
+					Class = "knight";
+					if(f.factions.length >= 2)
+					{
+						spawnloc = getBaseLocation(f.factions[(getGameTime() % (f.factions.length - 1)) + 1].team);//Need to get the base location of an enemy, the first faction's always the raider faction.
+						int number = XORRandom(100) + 500;
+						if((getGameTime() / 2) % 2 == 1) //Might not work. We'll have to see C:
+						{
+							number *= 1;
+						}
+						else
+						{
+							number *= -1;
+						}
+						spawnloc.x += number;
+					}
+					
+				}
+				else
+				{
+					Class = "builder";
+					spawnloc = getBaseLocation(team);
+				}
             }
-	
-	    return newBlob;
+			//This doesn't work if i put it as a const. And I don't think it's much worse off here.
+			string[] swords =  //Should be in order of strength.
+			{
+				"woodenblade",
+				"woodenblade",
+				"stoneblade",
+				"stoneblade",
+				"ironblade",
+				"ironpartisan",
+				"mithrildagger",
+				"mithrilblade",
+				"platinumblade",
+				"platinumblade",
+				"shadowblade",
+				"shadowblade",
+				"titanblade"
+			};
+			string[] armor =  //Should be in order of strength.
+			{
+				"tunic",
+				"woodenarmor",
+				"woodenarmor",
+				"stonearmor",
+				"stonearmor",
+				"ironarmor",
+				"ironarmor",
+				"ironarmor",
+				"mithrilarmor",
+				"mithrilarmor",
+				"platinumarmor",
+				"platinumarmor",
+				"titanarmor"
+			};
+			CBlob@ newBlob = server_CreateBlob(Class,team,spawnloc);
+			if(newBlob !is null)
+			{
+				newBlob.server_SetPlayer(player);
+				if(isRaider)
+				{
+					newBlob.setVelocity(Vec2f(0, -6));
+					CBlob@ crate = server_CreateBlob("raft", newBlob.getTeamNum(), spawnloc);
+					if(crate !is null)
+					{
+						crate.server_SetTimeToDie(14);
+						crate.getShape().setDrag(5.0f);
+						crate.setVelocity(Vec2f(0, 4)); //Will still go under, but won't spawn in the dirt if you spawn on something.
+					}
+					CBlob@ chicken = server_CreateBlob("chicken", newBlob.getTeamNum(), spawnloc);
+					if(chicken !is null)
+					{
+						chicken.server_SetTimeToDie(14);
+						chicken.setVelocity(Vec2f(0, 0));
+						newBlob.server_Pickup(chicken);
+					}
+					newBlob.Tag("raider");
+					{
+						CBlob@ b = server_CreateBlob("knight", newBlob.getTeamNum(), spawnloc);
+						if(b !is null)
+						{
+							newBlob.server_PutInInventory(b);
+							b.getBrain().server_SetActive(true);
+						}
+					}
+					{
+						CBlob@ b = server_CreateBlob("knight", newBlob.getTeamNum(), spawnloc);
+						if(b !is null)
+						{
+							newBlob.server_PutInInventory(b);
+							b.getBrain().server_SetActive(true);
+							newBlob.server_SetHealth(newBlob.getInitialHealth() * 2.0f + (XORRandom(2) / 4));
+						}
+					}
+					float difficulty = getGameTime() / 17000;
+					difficulty = Maths::Floor(difficulty);
+					newBlob.server_SetHealth(newBlob.getInitialHealth() * 0.5 + (XORRandom(2) / 4));
+					{ //spawn armor.
+						CBlob@ b = server_CreateBlob(swords[Maths::Min(difficulty + XORRandom(2), swords.length - 1)], newBlob.getTeamNum(), spawnloc);
+						if(b !is null)
+						{
+							newBlob.server_PutInInventory(b);
+						}
+					}
+					{
+						CBlob@ b = server_CreateBlob(armor[Maths::Min(difficulty, armor.length - 1)], newBlob.getTeamNum(), spawnloc);
+						if(b !is null)
+						{
+							newBlob.server_PutInInventory(b);
+						}
+					}
+				}
+			}
+	    
+			if(blob !is null)
+			{
+				blob.server_SetPlayer(null);
+				blob.server_Die();
+			}
+			return newBlob;
         }
         return null;
     }

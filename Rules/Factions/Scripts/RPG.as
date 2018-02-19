@@ -9,7 +9,9 @@ void onRestart( CRules@ this )
 
     Factions _factions();
     this.set("factions", @_factions);
-
+	
+	Factions@ f;
+	this.get("factions", @f);
     RPGRespawns res(this);
     RPGCore core(this, res);
     this.set("core", @core);
@@ -22,6 +24,30 @@ void onRestart( CRules@ this )
         if(p !is null)
             p.server_setTeamNum(7);//aka factionless
     }
+	CMap@ map = getMap();
+	{
+	string name = "Raiders";
+	//CBlob@ raiderBase = server_CreateBlob("factionbase", 4, Vec2f(map.tilemapwidth / 2 * map.tilesize, map.tilemapheight / 2 * map.tilesize)); //RAIDERS GOT NO BASE YO
+	//if(raiderBase !is null)
+	{
+		f.createFaction(name, "nobody");
+		Faction@ fact2 = f.getFactionByName(name);
+		//raiderBase.server_setTeamNum(fact2.team);
+		//raiderBase.Tag("raiderbase");
+	}
+	}
+	{
+	string name = "GOUH";
+	
+	CBlob@ raiderBase = server_CreateBlob("factionbase", 4, Vec2f(map.tilemapwidth / 2 * map.tilesize, map.tilemapheight / 8 * map.tilesize));
+	if(raiderBase !is null)
+	{
+		f.createFaction(name, "nobody");
+		Faction@ fact2 = f.getFactionByName(name);
+		raiderBase.server_setTeamNum(fact2.team);
+		raiderBase.Tag("raiderbase");
+	}
+	}
 }
 
 void onInit( CRules@ this )

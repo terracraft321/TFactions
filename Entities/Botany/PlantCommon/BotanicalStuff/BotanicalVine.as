@@ -29,7 +29,6 @@ void onTick(CBlob@ this)
 						b.set_u16("vinenum", Maths::Max(int(vinenum - 1), 0));
 						b.Sync("vinenum", true);
 						b.Tag("flower");
-                                                this.Sync("flower", true);
 						b.Sync("flower", true);
 						this.Untag("flower"); //Pass the beacon :3
 					}

@@ -63,7 +63,7 @@ bool onServerProcessChat( CRules@ this, const string& in text_in, string& out te
                         BuildBlock[] blocks;
                         BuildBlock b(0, "factionbase", "", "");
                         b.buildOnGround = true;
-                        b.size.Set(40, 24);
+                        b.size.Set(40, 30);
                         blocks.push_back(b);
                         CBlob@ fBase = server_BuildBlob(blob, @blocks, 0);
                         if(fBase !is null)
@@ -160,7 +160,7 @@ bool onServerProcessChat( CRules@ this, const string& in text_in, string& out te
             Faction@ fact2 = f.getFactionByMemberName(player_name);
             if(fact !is null)
             {
-                if(fact.isOnTheList(player_name) && fact !is fact2)
+                if(( fact.isOnTheList(player_name) || team_name == "Raiders" ) && fact !is fact2)
                 {
                     send_chat(this, player, "Faction: you have successfully joined " + fact.name, SColor(255, 255, 0, 0) );
                     //check if is already in faction
@@ -387,19 +387,15 @@ bool onServerProcessChat( CRules@ this, const string& in text_in, string& out te
                 }
             }
         }
-		else if (sv_test && args[0].substr(0, 1) == "!")
+		else if(sv_test && args[0].substr(0, 1) == "!")
 		{
 			// check if we have tokens
 			string[]@ tokens = args[0].split(" ");
 
-			if (tokens.length > 1)
+			if (args.length > 1 && tokens[0] == "!team")
 			{
-				if (tokens[0] == "!team")
-				{
-					int team = parseInt(tokens[1]);
-					blob.server_setTeamNum(team);
-				}
-
+				int team = parseInt(args[1]);
+				blob.server_setTeamNum(team);
 				return true;
 			}
 
@@ -409,6 +405,14 @@ bool onServerProcessChat( CRules@ this, const string& in text_in, string& out te
 			if (server_CreateBlob(name, team, pos) is null)
 			{
 				client_AddToChat("blob " + args[0] + " not found", SColor(255, 255, 0, 0));
+			}
+			else if (args.length > 1)
+			{
+				int number = Maths::Min(parseInt(args[1])-1, 150);
+				for(int i = 0; i < number; i++)
+				{
+					server_CreateBlob(name, team, pos);
+				}
 			}
 		}
     }

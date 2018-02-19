@@ -14,10 +14,10 @@ void onTick(CBlob@ this)
 	
 	
 	RunnerMoveVars@ moveVars;
-	/*if(this.get("moveVars", @moveVars))
+	if(!this.get("moveVars", @moveVars))
 	{
-		moveVars.jumpFactor = 1.0f;
-	}*/
+		return;
+	}
 	if(this.get_u32("charge") > 0){
 		
 		if(this.get("moveVars", @moveVars))
@@ -52,68 +52,42 @@ void onTick(CBlob@ this)
 	
 	
 	string weapon = this.get_string("weapon");
-	if(weapon == "titanblade")
+	if(weapon == "shadowblade")
 	{
-		if(this.get("moveVars", @moveVars))
-		{
-			moveVars.walkFactor *= 0.75f;
-		}
-	}
-	else if(weapon == "shadowblade")
-	{
-		if(this.get("moveVars", @moveVars))
-		{
-			moveVars.walkFactor *= 1.2f;
-		}
+		moveVars.walkFactor *= 1.2f;
 	}
 	else if(weapon == "bladeoffeathers")
 	{
-		if(this.get("moveVars", @moveVars))
-		{
-			moveVars.walkFactor *= 1.2f;
-		}
-		{
-			moveVars.jumpFactor *= 1.5f;
-		}
-		
+		moveVars.walkFactor *= 1.2f;
+		moveVars.jumpFactor *= 1.5f;
 	}
 	else if(weapon == "bloodatuns")
 	{
-		if(this.get("moveVars", @moveVars))
-		{
-			moveVars.jumpFactor *= 1.5f;
-		}
+		moveVars.jumpFactor *= 1.6f;
 	}
 	else if(weapon == "greatblade")
 	{
-		if(this.get("moveVars", @moveVars))
-		{
-			moveVars.walkFactor *= 0.5f;
-		}
+		moveVars.walkFactor *= 0.4f;
 	}
-	if(weapon == "titanbow")
+	else if(weapon == "titanbow" || weapon == "titanblade" || weapon == "titanpick")
 	{
-		if(this.get("moveVars", @moveVars))
-		{
-			moveVars.walkFactor *= 0.75f;
-		}
+		moveVars.walkFactor *= 0.75f;
 	}
 	//-- Armor extra affects
 	string armor = this.get_string("armor");
 	if(armor == "tunic")
 	{
-		if(this.get("moveVars", @moveVars))
-		{
-			moveVars.walkFactor *= 1.4f;
-		}
+		moveVars.walkFactor *= 1.4f;
 	}
 	else if(armor == "titanarmor")
 	{
-		if(this.get("moveVars", @moveVars))
-		{
-			moveVars.walkFactor *= 0.75f;
-		}
+		moveVars.walkFactor *= 0.73f;
 	}
+	if( armor == "direplate" )
+	{
+		moveVars.jumpFactor *= 3.5f;
+	}
+	//-- Ring extra effects
 	string misc = this.get_string("misc");
 	if( misc == "hellfirering" )
 	{
@@ -124,18 +98,20 @@ void onTick(CBlob@ this)
 
 f32 onHit(CBlob@ this, Vec2f worldPoint, Vec2f velocity, f32 damage, CBlob@ hitterBlob, u8 customData)
 {
-	f32 dmg = damage;
+	if(customData == Hitters::drown)
+	{
+		return damage;
+	}
 	
-	if(dmg <= 0)return dmg;
+	if(damage <= 0)return damage;
 	f32 def = 1;
 	if(this.exists("defence_multiplier"))
 	{
 		def = this.get_f32("defence_multiplier");
 	}
+	damage *= def;
 	
-	dmg *= def;
-	
-	return dmg; 
+	return damage; 
 }
 
 void onHitBlob(CBlob@ this, Vec2f worldPoint, Vec2f velocity, f32 damage, CBlob@ hitBlob, u8 customData)
@@ -180,16 +156,19 @@ void onHitBlob(CBlob@ this, Vec2f worldPoint, Vec2f velocity, f32 damage, CBlob@
 
 void onDie(CBlob@ this)
 {
-	if(this.exists("weapon"))
+	if(!this.getBrain().isActive())
 	{
-		CBlob@ weapon = server_CreateBlob(this.get_string("weapon"), -1, this.getPosition());
-	}
-	if(this.exists("armor"))
-	{
-		CBlob@ armor = server_CreateBlob(this.get_string("armor"), -1, this.getPosition());
-	}
-	if(this.exists("misc"))
-	{
-		CBlob@ misc = server_CreateBlob(this.get_string("misc"), -1, this.getPosition());
+		if(this.exists("weapon"))
+		{
+			CBlob@ weapon = server_CreateBlob(this.get_string("weapon"), -1, this.getPosition());
+		}
+		if(this.exists("armor"))
+		{
+			CBlob@ armor = server_CreateBlob(this.get_string("armor"), -1, this.getPosition());
+		}
+		if(this.exists("misc"))
+		{
+			CBlob@ misc = server_CreateBlob(this.get_string("misc"), -1, this.getPosition());
+		}
 	}
 }

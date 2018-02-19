@@ -42,8 +42,8 @@ bool GiveSpawnResources(CRules@ this, CBlob@ blob, CPlayer@ player, CTFPlayerInf
 
 	if (blob.getName() == "builder")
 	{
-		ret = SetMaterials(blob, "mat_wood", 100) || ret;
-		ret = SetMaterials(blob, "mat_stone", 30) || ret;
+		ret = SetMaterials(blob, "mat_wood", 40) || ret;
+		ret = SetMaterials(blob, "mat_stone", 10) || ret;
 
 		if (ret)
 		{

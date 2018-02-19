@@ -30,7 +30,8 @@ bool canChangeClass(CBlob@ this, CBlob@ blob)
 	return br.x > _tl.x
 	       && br.y > _tl.y
 	       && _br.x > tl.x
-	       && _br.y > tl.y;
+	       && _br.y > tl.y
+		   && !blob.hasTag("raider");
 
 }
 

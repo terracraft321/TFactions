@@ -20,7 +20,7 @@ void onCollision(CBlob@ this, CBlob@ blob, bool solid, Vec2f normal, Vec2f point
 	{
 		string name = blob.getName();
 		string creation = "mat_stone";
-		int quantity = 50;
+		int quantity = 60;
 		if(name.find("stone") >= 0)
 		{
 			creation = "mat_stone";

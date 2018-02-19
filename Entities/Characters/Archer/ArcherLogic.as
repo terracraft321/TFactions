@@ -1,4 +1,4 @@
-// Archer logic
+// Archer logic And to make it easier to find: Archerlogic
 
 #include "ArcherCommon.as"
 #include "ThrowCommon.as"
@@ -15,12 +15,18 @@ const int fletch_num_arrows = 1;
 const int STAB_DELAY = 10;
 const int STAB_TIME = 22;
 
+//Cancel numbers
+const float SHORT_SHOT = 2.0f;
+const float MED_SHOT = 3.0f;
+const float LONG_SHOT = 5.0f; //The likeliness it's gonna work
+const float LEGOLAS_SHOT = 7.0f;
+const float GRAPPLE_SHOT = 11.0f;
 void onInit(CBlob@ this)
 {
 	ArcherInfo archer;
 	this.set("archerInfo", @archer);
 
-	this.set_s8("charge_time", 0);
+	this.set_s16("archer_charge_time", 0);
 	this.set_u8("charge_state", ArcherParams::not_aiming);
 	this.set_bool("has_arrow", false);
 	this.set_f32("gib health", -3.0f);
@@ -75,7 +81,7 @@ void ManageGrapple(CBlob@ this, ArcherInfo@ archer)
 		if (charge_state != ArcherParams::not_aiming)
 		{
 			charge_state = ArcherParams::not_aiming;
-			archer.charge_time = 0;
+			this.set_s16("archer_charge_time", 0);
 			sprite.SetEmitSoundPaused(true);
 			sprite.PlaySound("PopIn.ogg");
 		}
@@ -278,11 +284,10 @@ void ManageBow(CBlob@ this, ArcherInfo@ archer, RunnerMoveVars@ moveVars)
 	CSprite@ sprite = this.getSprite();
 	bool ismyplayer = this.isMyPlayer();
 	bool hasarrow = archer.has_arrow;
-	s16 charge_time = archer.charge_time;
+	s16 charge_time = this.get_s16("archer_charge_time");
 	u8 charge_state = archer.charge_state;
 	const bool pressed_action2 = this.isKeyPressed(key_action2);
 	Vec2f pos = this.getPosition();
-
 	if (ismyplayer)
 	{
 		if ((getGameTime() + this.getNetworkID()) % 10 == 0)
@@ -348,7 +353,7 @@ void ManageBow(CBlob@ this, ArcherInfo@ archer, RunnerMoveVars@ moveVars)
 		else if (this.isKeyJustPressed(key_action1) ||
 		         (archer.legolas_arrows == ArcherParams::legolas_arrows_count &&
 		          !this.isKeyPressed(key_action1) &&
-		          this.wasKeyPressed(key_action1)))
+		          this.wasKeyPressed(key_action1))) //Aka, this.isKeyJustReleased(key_action1)?
 		{
 			ClientFire(this, charge_time, hasarrow, archer.arrow_type, true);
 			charge_state = ArcherParams::legolas_charging;
@@ -524,16 +529,16 @@ void ManageBow(CBlob@ this, ArcherInfo@ archer, RunnerMoveVars@ moveVars)
 		if (!getHUD().hasButtons())
 		{
 			int frame = 0;
-			//	print("archer.charge_time " + archer.charge_time + " / " + shootp );
+			//	print("this.get_s16("archer_charge_time") " + this.get_s16("archer_charge_time") + " / " + shootp );
 			if (archer.charge_state == ArcherParams::readying)
 			{
-				frame = 1 + float(archer.charge_time) / float(shootp + ready_time) * 7;
+				frame = 1 + float(this.get_s16("archer_charge_time")) / float(shootp + ready_time) * 7;
 			}
 			else if (archer.charge_state == ArcherParams::charging)
 			{
-				if (archer.charge_time <= shootp)
+				if (this.get_s16("archer_charge_time") <= shootp)
 				{
-					frame = float(ready_time + archer.charge_time) / float(shootp) * 7;
+					frame = float(ready_time + this.get_s16("archer_charge_time")) / float(shootp) * 7;
 				}
 				else
 					frame = 9;
@@ -575,7 +580,7 @@ void ManageBow(CBlob@ this, ArcherInfo@ archer, RunnerMoveVars@ moveVars)
 		}
 	}
 
-	archer.charge_time = charge_time;
+	this.set_s16("archer_charge_time", charge_time);
 	archer.charge_state = charge_state;
 	archer.has_arrow = hasarrow;
 
@@ -593,7 +598,7 @@ void onTick(CBlob@ this)
 	{
 		archer.grappling = false;
 		archer.charge_state = 0;
-		archer.charge_time = 0;
+		this.set_s16("archer_charge_time", 0);
 		return;
 	}
 
@@ -693,12 +698,13 @@ bool canSend(CBlob@ this)
 	return (this.isMyPlayer() || this.getPlayer() is null || this.getPlayer().isBot());
 }
 
-void ClientFire(CBlob@ this, const s8 charge_time, const bool hasarrow, const u8 arrow_type, const bool legolas)
+void ClientFire(CBlob@ this, const s16 charge_time, const bool hasarrow, const u8 arrow_type, const bool legolas)
 {
 	//time to fire!
 	if (hasarrow && canSend(this))  // client-logic
 	{
-		f32 arrowspeed;
+		float cancelnum = this.get_u16("cancelnum");
+		f32 arrowspeed = 0;
 		float shootp1 = ArcherParams::shoot_period_1;
 		float shootp2 = ArcherParams::shoot_period_2;
 		float ready_time = ArcherParams::ready_time;
@@ -709,7 +715,26 @@ void ClientFire(CBlob@ this, const s8 charge_time, const bool hasarrow, const u8
 			shootp2 *= speedmult;
 			ready_time *= speedmult;
 		}
-		if (charge_time < ready_time / 2 + shootp1)
+		
+		
+		//Try and shoot normally.
+		//If normal shooting is blocked, try shooting weaker.
+		//If that's blocked, don't bother.
+		if(charge_time >= ready_time / 2 + shootp2 && (cancelnum / LONG_SHOT == Maths::Floor(cancelnum / LONG_SHOT)))
+		{
+			arrowspeed = ArcherParams::shoot_max_vel; //Long
+			print("DIS TRUE");
+		}
+		else if(charge_time >= ready_time / 2 + shootp1 && (cancelnum / MED_SHOT == Maths::Floor(cancelnum / MED_SHOT)))
+		{
+			arrowspeed = ArcherParams::shoot_max_vel * (4.0f / 5.0f); //Med
+		}
+		else if(cancelnum / SHORT_SHOT == Maths::Floor(cancelnum / SHORT_SHOT))
+		{
+			print("DAS TRUE");
+			arrowspeed = ArcherParams::shoot_max_vel * (1.0f / 3.0f); //Short
+		} //Tada! Now if you're aiming for med shot, but it's blocked and short shot is open, it should hopefully be able to shoot short shots!
+		/*if (charge_time < ready_time / 2 + shootp1)
 		{
 			arrowspeed = ArcherParams::shoot_max_vel * (1.0f / 3.0f);
 		}
@@ -720,9 +745,12 @@ void ClientFire(CBlob@ this, const s8 charge_time, const bool hasarrow, const u8
 		else
 		{
 			arrowspeed = ArcherParams::shoot_max_vel;
+		}*/
+		if(arrowspeed != 0)
+		{
+			ShootArrow(this, this.getPosition() + Vec2f(0.0f, -2.0f), this.getAimPos() + Vec2f(0.0f, -2.0f), arrowspeed, arrow_type, legolas);
 		}
-
-		ShootArrow(this, this.getPosition() + Vec2f(0.0f, -2.0f), this.getAimPos() + Vec2f(0.0f, -2.0f), arrowspeed, arrow_type, legolas);
+		
 	}
 }
 
@@ -734,11 +762,6 @@ void ShootArrow(CBlob @this, Vec2f arrowPos, Vec2f aimpos, f32 arrowspeed, const
 		Vec2f arrowVel = (aimpos - arrowPos);
 		arrowVel.Normalize();
 		arrowVel *= arrowspeed;
-		if(legolas)
-		{
-			arrowVel.Normalize();
-			arrowVel *= ArcherParams::shoot_max_vel;
-		}
 		if(this.exists("rangemult"))
 		{
 			arrowVel *= (1 + ((this.get_f32("rangemult") - 1 ) / 4.0f)); //Archer range is insane ! :(  But if I just divide it by 2, it won't work... 
@@ -815,6 +838,10 @@ CBlob@ CreateArrow(CBlob@ this, Vec2f arrowPos, Vec2f arrowVel, u8 arrowType)
 				arrow.Tag("Oliknockback");
 			}
 		}
+		if(this.get_string("weapon") == "narayanastra")
+		{
+			arrow.Tag("Narayanastra");
+		}
 	}
 	return arrow;
 }
@@ -844,8 +871,8 @@ void onCommand(CBlob@ this, u8 cmd, CBitStream @params)
 
 		if (legolas)
 		{
-			//arrowVel.Normalize();
-			//arrowVel *= ArcherParams::shoot_max_vel; //Hack to prevent legolas'd shots being at shootmaxvel - which is bad.
+			arrowVel.Normalize();
+			arrowVel *= ArcherParams::shoot_max_vel; //Hack to prevent legolas'd shots being at shootmaxvel - which is bad.
 			int r = 0;
 			for (int i = 0; i < ArcherParams::legolas_arrows_volley; i++)
 			{

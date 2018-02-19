@@ -30,7 +30,7 @@ shared class Factions
 		for(int i = 0; i < factions.length; i++)
 		{
 			if(factions[i].team == team)
-			{				
+			{	
 				//print("wow");
 				factions[i].removeAllMembers();
 				factions.removeAt(i);
@@ -170,11 +170,15 @@ shared class Faction
 	bool addMember(string _member)
 	{
 		members.push_back(_member);
-		CBlob@ b = getPlayerByUsername(_member).getBlob();
-		if(b !is null)
+		CPlayer@ p = getPlayerByUsername(_member);
+		if(p !is null)
 		{
-			b.server_setTeamNum(team);
-			return true;
+			CBlob@ b = p.getBlob();
+			if(b !is null)
+			{
+				b.server_setTeamNum(team);
+				return true;
+			}
 		}
 		return false;
 	}

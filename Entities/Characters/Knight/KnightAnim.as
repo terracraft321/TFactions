@@ -39,15 +39,47 @@ void onInit(CSprite@ this)
 		shiny.SetVisible(false);
 		shiny.SetRelativeZ(1.0f);
 	}
+	loadSprites(this);
+}
+
+void loadSprites(CSprite@ this)
+{
+	ensureCorrectRunnerTexture(this, "knight", "Knight");
+	
+	this.RemoveSpriteLayer("weapon");
+	string pal_name = "palette_"+"KnightSword.png";
+	if(!Texture::exists(pal_name))
+	{
+		Texture::createFromFile(pal_name, "KnightSword.png");
+	}
+	CSpriteLayer@ weapon = this.addTexturedSpriteLayer("weapon", pal_name, 32, 32);
+	if(weapon !is null)
+	{
+		Animation@ anim = weapon.addAnimation("default", 0, false);
+		for(int i = 0; i < 8*8; i += 1)
+		{
+			anim.AddFrame(i);
+		}
+		weapon.SetAnimation(anim);
+		weapon.SetRelativeZ(this.getRelativeZ() + 0.01f);
+		weapon.SetOffset(Vec2f(0, -4));
+		weapon.SetFacingLeft(this.isFacingLeft());
+		weapon.SetVisible(true);
+	}
 }
 
 void onPlayerInfoChanged(CSprite@ this)
 {
 	ensureCorrectRunnerTexture(this, "knight", "Knight");
+	loadSprites(this);
 }
+
+
 
 void onTick(CSprite@ this)
 {
+	
+	
 	// store some vars for ease and speed
 	CBlob@ blob = this.getBlob();
 	Vec2f pos = blob.getPosition();
@@ -355,7 +387,12 @@ void onTick(CSprite@ this)
 		blob.Untag("attack head");
 		blob.Untag("dead head");
 	}
-
+	CSpriteLayer@ sword = this.getSpriteLayer("weapon");
+	if(sword !is null)
+	{
+		sword.SetFrame(this.getFrame());
+		
+	}
 }
 
 void onGib(CSprite@ this)

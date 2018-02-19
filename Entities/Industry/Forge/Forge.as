@@ -315,7 +315,7 @@ void initForge(CBlob@ this)
 		case PICKINDEX: //Picks - maybe split this one up, since they're 4* larger than other things.
 		{
 			{
-				ShopItem@ s = addShopItem(this, "Wooden 'pickaxe'", "$woodenpick_$", "woodenpick", "It's a log on a stick, it digs slightly faster, and has a little better range. /nDon't ask why.", false);
+				ShopItem@ s = addShopItem(this, "Wooden 'pickaxe'", "$woodenpick_$", "woodenpick", "It's a log on a stick, it digs slightly faster, and has a little better range. \nDon't ask why.", false);
 				AddRequirement(s.requirements, "blob", "mat_wood", "Wood", 150);
 			}
 			{
